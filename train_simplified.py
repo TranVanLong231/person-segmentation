@@ -248,15 +248,15 @@ def main():
     
     print("Loading Model...")
     
-    # ckpt = torch.load(os.path.join(os.getcwd(), args.restore_from))
-    # new_params = model.state_dict().copy()
+    ckpt = torch.load(os.path.join(os.getcwd(), args.restore_from))
+    new_params = model.state_dict().copy()
 
-    # for i in ckpt:
-    #     i_parts = i.split('.')
-    #     if not i_parts[0] == 'fc':
-    #         new_params['.'.join(i_parts[0:])] = ckpt[i]
+    for i in ckpt:
+        i_parts = i.split('.')
+        if not i_parts[0] == 'fc':
+            new_params['.'.join(i_parts[0:])] = ckpt[i]
     
-    model.load_state_dict(torch.load('./snapshots/model_CHIP.pth'))
+    #model.load_state_dict(torch.load('./snapshots/model_CHIP.pth'))
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
