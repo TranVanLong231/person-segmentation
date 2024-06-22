@@ -1,2 +1,4 @@
 wandb
 tqdm
+tensorboardX
+opencv-python
