@@ -339,8 +339,8 @@ class PILGaussianBlur(ImageFilter.Filter):
             return image
         else:
             xy = self.radius
-            if not isinstance(xy, (tuple, list)):
-                xy = (xy, xy)
+            # if not isinstance(xy, (tuple, list)):
+            #     xy = (xy, xy)
             return image.gaussian_blur(xy)
 class GaussianBlur(object):
     def __init__(self, radius=2 ):
