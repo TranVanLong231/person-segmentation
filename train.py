@@ -209,7 +209,7 @@ def main():
     print(model) 
 
     criterion = CriterionAll()
-    # criterion = DataParallelCriterion(criterion)
+    #criterion = DataParallelCriterion(criterion)
     criterion.cuda()
 
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],

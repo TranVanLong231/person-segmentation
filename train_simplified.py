@@ -27,7 +27,7 @@ def get_arguments():
       A list of parsed arguments.
     """
 
-    BATCH_SIZE = 3
+    BATCH_SIZE = 2
     DATA_DIRECTORY = './datasets/CIHP'
 
     IGNORE_LABEL = 255
@@ -82,7 +82,7 @@ def get_arguments():
                         help="Where to save snapshots of the model.")
     parser.add_argument("--start-epoch", type=int, default=0,
                         help="choose the number of recurrence.")
-    parser.add_argument("--num_epochs", type=int, default=150,
+    parser.add_argument("--num_epochs", type=int, default=100,
                         help="choose the number of recurrence.")
     
     return parser.parse_args()
@@ -119,8 +119,7 @@ def train(loader, valid_loader, model, opt, scaler, criterion, total_iters, epoc
     model.train()
     loop = tqdm(loader, position = 0, leave = True)
     loss_ = AverageMeter()
-    for idx, batch in enumerate(loop):
-        
+    for idx, batch in enumerate(loop):         
         idx += len(loader) * epoch
         lr = adjust_learning_rate(opt, idx, total_iters)
 
@@ -185,40 +184,42 @@ def train(loader, valid_loader, model, opt, scaler, criterion, total_iters, epoc
                 'Pred': pred_wb,
                 'Edges': edge_wb,
                 'Pred Edges': pred_edge_wb
-            })
-    
+            })                
+
     if epoch % 2 == 0:
+        print('Saving snapshot...')
+        state = { 'model': model.state_dict(), 'optimizer':opt.state_dict(), 'epoch': epoch }  
+        torch.save(state, args.snapshot_dir+f"model_CHIP_{epoch}.pth")
+        # num_samples = len(valid_loader) * args.batch_size
+        # parsing_preds, img, scales, centers = valid(model, valid_loader, [512, 512],  num_samples, 1)
+        # if isinstance(parsing_preds, np.ndarray):
+        #     output_parsing = parsing_preds.copy()
+        # if isinstance(parsing_preds, torch.Tensor):
+        #     output_parsing = parsing_preds.clone()
+        # else:
+        #     output_parsing = parsing_preds
 
-        num_samples = len(valid_loader) * args.batch_size
-        parsing_preds, img, scales, centers = valid(model, valid_loader, [512, 512],  num_samples, 1)
-        if isinstance(parsing_preds, np.ndarray):
-            output_parsing = parsing_preds.copy()
-        if isinstance(parsing_preds, torch.Tensor):
-            output_parsing = parsing_preds.clone()
-        else:
-            output_parsing = parsing_preds
-
-        mIoU, pixel_acc, mean_acc = compute_mean_ioU(parsing_preds, scales, centers, args.num_classes, args.data_dir, [512, 512])
-        print('Printing MIoU Values...')
-        for k, v in mIoU.items():
-            print(f'{k}: {v}')
-        print(f'Pixel Accuracy: {pixel_acc}')
-        print(f'Mean Accuracy: {mean_acc}')
-        palette = get_ccihp_pallete()
-        wandb.log({
-            'Valid MIoU': mIoU,
-            'Valid Pixel Accuracy': pixel_acc,
-            'Valid Mean Accuracy': mean_acc
-            })
-        print('Values Logged on wandb')
-        for i in range(len(output_parsing)):
-            print('Inside Loop')
-            #ip_img = Image.fromarray(img[i])
-            op_img = Image.fromarray(output_parsing[i])
-            op_img.putpalette(palette)
-            #ip_img_wb = wandb.Image(ip_img)
-            op_label_wb = wandb.Image(op_img)
-            wandb.log({'Valid Pred': op_label_wb})
+        # mIoU, pixel_acc, mean_acc = compute_mean_ioU(parsing_preds, scales, centers, args.num_classes, args.data_dir, [512, 512])
+        # print('Printing MIoU Values...')
+        # for k, v in mIoU.items():
+        #     print(f'{k}: {v}')
+        # print(f'Pixel Accuracy: {pixel_acc}')
+        # print(f'Mean Accuracy: {mean_acc}')
+        # palette = get_ccihp_pallete()
+        # wandb.log({
+        #     'Valid MIoU': mIoU,
+        #     'Valid Pixel Accuracy': pixel_acc,
+        #     'Valid Mean Accuracy': mean_acc
+        #     })
+        # print('Values Logged on wandb')
+        # for i in range(len(output_parsing)):
+        #     print('Inside Loop')
+        #     #ip_img = Image.fromarray(img[i])
+        #     op_img = Image.fromarray(output_parsing[i])
+        #     op_img.putpalette(palette)
+        #     #ip_img_wb = wandb.Image(ip_img)
+        #     op_label_wb = wandb.Image(op_img)
+        #     wandb.log({'Valid Pred': op_label_wb})
 
     
 
@@ -234,7 +235,7 @@ def main():
     train_loader = DataLoader(dataset, 
                             batch_size = args.batch_size, 
                             shuffle  = False,
-                            num_workers = 1,
+                            num_workers = 4,
                             pin_memory = True)
     
     val_dataset = LIPDataValSet(args.data_dir,'val', transform = transform)
@@ -244,16 +245,20 @@ def main():
                             pin_memory= True)
     
     model = Res_Deeplab(num_classes = args.num_classes)
-    print("Loading Model...")
-    ckpt = torch.load(os.path.join(os.getcwd(), args.restore_from))
-    new_params = model.state_dict().copy()
-
-    for i in ckpt:
-        i_parts = i.split('.')
-        if not i_parts[0] == 'fc':
-            new_params['.'.join(i_parts[0:])] = ckpt[i]
     
-    model.load_state_dict(new_params)
+    print("Loading Model...")
+    
+    # ckpt = torch.load(os.path.join(os.getcwd(), args.restore_from))
+    # new_params = model.state_dict().copy()
+
+    # for i in ckpt:
+    #     i_parts = i.split('.')
+    #     if not i_parts[0] == 'fc':
+    #         new_params['.'.join(i_parts[0:])] = ckpt[i]
+    
+    model.load_state_dict(torch.load('./snapshots/model_CHIP.pth'))
+    
+    #model = nn.DataParallel(model)
     model.cuda()
     print('Model Loaded.')
 

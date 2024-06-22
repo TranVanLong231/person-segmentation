@@ -53,7 +53,7 @@ class LIPDataSet(data.Dataset):
         self.buffer100 = []
         self.bufferOffset = 0
     def __len__(self):
-        return 300#self.number_samples
+        return self.number_samples
 
     def _box2cs(self, box):
         x, y, w, h = box[:4]
@@ -273,7 +273,7 @@ class LIPDataValSet(data.Dataset):
         self.number_samples = len(self.val_list)
 
     def __len__(self):
-        return 20#len(self.val_list)
+        return len(self.val_list)
 
     def _box2cs(self, box):
         x, y, w, h = box[:4]
@@ -296,7 +296,6 @@ class LIPDataValSet(data.Dataset):
        
         # Load training image
         im_path = os.path.join(self.root, self.dataset + '_images','Images', val_item + '.jpg')
-        print(im_path)
         im = cv2.imread(im_path, cv2.IMREAD_COLOR)
         im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
         h, w, _ = im.shape

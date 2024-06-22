@@ -57,7 +57,6 @@ def get_confusion_matrix(gt_label, pred_label, num_classes):
 def compute_mean_ioU(preds, scales, centers, num_classes, datadir, input_size=[473, 473], dataset='val'):
     list_path = os.path.join(datadir, dataset + '_id.txt')
     val_id = [i_id.strip() for i_id in open(list_path)]
-    
     confusion_matrix = np.zeros((num_classes, num_classes))
 
     for i, im_name in enumerate(val_id):
