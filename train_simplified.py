@@ -257,13 +257,15 @@ def main():
     #     if not i_parts[0] == 'fc':
     #         new_params['.'.join(i_parts[0:])] = ckpt[i]
     snapshot = torch.load(args.restore_from)
-    model.load_state_dict(snapshot['model'])
+
+    
     
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
         # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
         model = nn.DataParallel(model)
+    model.load_state_dict(snapshot['model'])
     model.cuda()
     print('Model Loaded.')
 
