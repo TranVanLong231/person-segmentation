@@ -257,7 +257,7 @@ def main():
     #     if not i_parts[0] == 'fc':
     #         new_params['.'.join(i_parts[0:])] = ckpt[i]
     snapshot = torch.load(args.restore_from)
-    model.load_state_dict(snapshot['state_dict'])
+    model.load_state_dict(snapshot['model'])
     
 
     if torch.cuda.device_count() > 1:
